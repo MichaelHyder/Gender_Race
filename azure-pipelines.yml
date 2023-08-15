@@ -1,0 +1,78 @@
+# Python package
+# Create and test a Python package on multiple Python versions.
+# Add steps that analyze code, save the dist with the build record, publish to a PyPI-compatible index, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/python
+
+trigger:
+- main
+
+
+jobs:
+- job: "TestUbuntu"
+  pool:
+    vmImage: ubuntu-latest
+  strategy:
+    matrix:
+      Python37:
+        python.version: '3.7'
+      Python38:
+        python.version: '3.8'
+      Python39:
+        python.version: '3.9'
+
+
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '$(python.version)'
+    displayName: 'Use Python $(python.version)'
+
+  - script: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
+    displayName: 'Install dependencies'
+
+  - script: |
+      pip install pytest pytest-azurepipelines
+      pip install pytest-cov
+      pytest --cov=. --cov-report=xml
+    displayName: 'pytest'
+
+- job: 'TestWindows'
+  pool:
+    vmImage: windows-latest
+  strategy:
+    matrix:
+      Python37:
+        python.version: '3.7'
+      Python38:
+        python.version: '3.8'
+      Python39:
+        python.version: '3.9'
+
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '$(python.version)'
+    displayName: 'Use Python $(python.version)'
+
+  - script: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
+    displayName: 'Install dependencies'
+
+  - script: |
+      pip install pytest pytest-azurepipelines coverage
+      pip install pytest-cov
+      pytest --cov=. --cov-report=xml
+    displayName: 'pytest'
+
+  - script: |
+      pip install --upgrade build
+      python -m build
+    displayName: 'build'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: 'dist/'
+      artifactName: mdhSDK-$(python.version)
