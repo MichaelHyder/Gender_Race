@@ -1,3 +1,3 @@
-from . import utils
-from . import race_nums
-from . import gender_nums
+import . from utils
+import . from race_nums
+import . from gender_nums
